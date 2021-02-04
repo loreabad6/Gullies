@@ -26,7 +26,6 @@
 #+ Libraries
 library(here)
 library(sf)
-library(stars)
 library(tidyverse, quietly = T, warn.conflicts = F)
 library(mapview)
 
@@ -99,7 +98,7 @@ t3t %>%
   plot(border = 'blue', col = NA, add = T)
 
 #+ interactive
-mapview(t1, layer.name = "Corret proj", col.regions = 'darkgreen') +
+mapview(t1, layer.name = "Correct proj", col.regions = 'darkgreen') +
   mapview(t2t, layer.name = "Wrong proj", col.regions = 'red') +
   mapview(t3t, layer.name = "Affine proj", col.regions = 'blue')
 
@@ -143,7 +142,7 @@ mapview(g39, layer.name = "Wrong proj 1939", col.regions = 'red') +
   mapview(g60_proj, layer.name = "Correct proj 1960", col.regions = 'orange') +
   mapview(g70_co, layer.name = "Affine proj 1970", col.regions = 'green') +
   mapview(g70, layer.name = "Wrong proj 1970", col.regions = 'purple') +
-  mapview(g88_goodproj, layer.name = "Corret proj 1988", col.regions = 'yellow')
+  mapview(g88_goodproj, layer.name = "Correct proj 1988", col.regions = 'yellow')
 
 #' 6. Save results
 #+ save, eval = F
