@@ -233,6 +233,7 @@ Thoughts:
 - Try to map the gullies only based on aerial photographs and DSM derivatives:
   - Candidate derivatives: slope, curvature (planar, profile), VDCN, *roughness*, hillshade, LS factor, *wetness index*
   - For roughness and wetness index select one specific index from SAGA.
+  - Check Stream Power Index, seems meant to detect Gullies.
 - Use "active gully" polygons from 1988 as a reference to create chips for Deep Learning approach  
 
 
