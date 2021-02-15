@@ -1,0 +1,221 @@
+#' ---
+#' title: "Exploratory Spatial Data Analysis"
+#' subtitle: "STEC project"
+#' author: "Lorena Abad"
+#' date: "February 9, 2021"
+#' output: 
+#'   html_document: 
+#'     toc: true
+#'     toc_depth: 3
+#'     toc_float: true
+#'     code_folding: hide
+#' ---
+#' ## Setup
+#' Call libraries and data
+
+#+ setup, include = F
+knitr::opts_chunk$set(echo = FALSE, warning = F, message = F, out.width = "100%")
+
+#+ Libraries
+library(here)
+library(sf)
+library(stars)
+library(tidyverse, quietly = T, warn.conflicts = F)
+library(mapview)
+library(tmap)
+library(ggforce)
+
+#+ Directories
+stec_dir = "R:/RESEARCH/02_PROJECTS/01_P_330001/119_STEC/04_Data/Gullies-Mangatu"
+
+#+ Data
+# g57 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_57_tm.shp'))
+# g97_1 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_97_tm.shp'))
+# g97_2 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_97_f_tm.shp'))
+g39 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1939_ero_feat_nztm.shp'))
+g60 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1960_ero_feat_nztm.shp'))
+g70 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1970_ero_feat_nztm.shp'))
+g88 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'mangatu_1988_ero_feat_nztm.shp'))
+
+#' ## Explore
+#' First I will combine all the data into one single object to better explore 
+#' and summarize variables
+#' 
+#+ Combine, echo = T
+# Establish some common variables
+gully = list(g39, g60, g70, g88)
+year = c(1939, 1960, 1970, 1988)
+colnames = names(g39)
+# Create function to harmonize datasets
+prepare_for_merge = function(x, y) {
+  z = mutate(x, year = y)
+  names(z) = c(colnames, 'year')
+  z
+}
+# Merge data
+l = purrr::map2(gully, year, prepare_for_merge)
+gully_merge = do.call(rbind, l) %>% 
+  mutate_if(is.character, factor) %>% 
+  mutate(Shape_Width = Shape_Area/Shape_Leng)
+
+#' Now that we have one single file, we can take a look at some of the attributes.
+#' 
+#' ### Features per year
+#' We can summarize our data to check how many erosion features we have per year.
+#' I have calculated a proxy for the feature width as $Area/Length$. 
+#' 
+#+ Explore1, echo = T
+e1 = gully_merge %>% 
+  st_drop_geometry() %>% 
+  group_by(year) %>% 
+  summarise(
+    feature_count = n(), 
+    total_area = sum(Shape_Area), 
+    total_length = sum(Shape_Leng),
+    total_width = sum(Shape_Width)
+  ) %>% 
+  ungroup() 
+
+e1 %>% 
+  knitr::kable()
+
+e1 %>% 
+  pivot_longer(-year, names_to = 'indicator') %>% 
+  ggplot(aes(x = year, y = value)) +
+  geom_line() + geom_point() +
+  labs(y = "") +
+  facet_wrap(~indicator, scales = 'free_y', nrow = 2)
+
+#' Let's take a look now at the variation of the indicators per feature and year
+#+ Explore2, fig.show = 'hold', echo = T
+d = gully_merge %>% 
+  st_drop_geometry() %>% 
+  select(-c(EROS, eros_feat_)) %>% 
+  group_by(year) %>% 
+  pivot_longer(-year, names_to = 'indicator')
+  
+d %>% 
+  filter(indicator == "Shape_Area") %>%
+  ggplot(aes(x = as.factor(year), y = value)) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 5e4)) +
+  labs(x = 'year', y = 'area (m2)')
+d %>% 
+  filter(indicator == "Shape_Leng") %>%
+  ggplot(aes(x = as.factor(year), y = value)) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 2e3)) +
+  labs(x = 'year', y = 'length (m)')
+d %>% 
+  filter(indicator == "Shape_Width") %>%
+  ggplot(aes(x = as.factor(year), y = value)) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 25)) +
+  labs(x = 'year', y = 'width (m)')
+
+#' ### Erosion features 
+#' There are two columns that refer to this variable `EROS` and `eros_feat_`. 
+#' I initially thought `EROS` was an acronym way to represent the long name
+#' description in `eros_feat_`, but when I group by both features and get a count,
+#' we can see that "Aggraded riverbed" is represented with three different 
+#' types of `EROS` values. These are not many features, in these categories, 
+#' summing up to **40** elements, but it would be still worth to check what they are.
+#+ Explore3, echo = T
+gully_merge %>% 
+  st_drop_geometry() %>% 
+  group_by(EROS, eros_feat_) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  knitr::kable()
+
+#' Coming back to the variation of the erosion feature measurements, now per 
+#' eorsion type and per year
+#+ Explore4, fig.show = 'hold', echo = T
+e = gully_merge %>% 
+  st_drop_geometry() %>% 
+  select(-c(EROS)) %>%
+  group_by(eros_feat_) %>% 
+  pivot_longer(-c(eros_feat_, year), names_to = 'indicator')
+
+e %>% 
+  filter(indicator == "Shape_Area") %>%
+  ggplot(aes(x = eros_feat_, y = value, fill = as.factor(year))) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 1.5e5)) +
+  labs(x = 'erosion feature', y = 'area (m2)') +
+  scale_fill_discrete("Year") +
+  theme(legend.position = "top", axis.text.x = element_text(angle = 90))
+
+e %>% 
+  filter(indicator == "Shape_Leng") %>%
+  ggplot(aes(x = eros_feat_, y = value, fill = as.factor(year))) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 1e4)) +
+  labs(x = 'erosion feature', y = 'length (m)') +
+  scale_fill_discrete("Year") +
+  theme(legend.position = "top", axis.text.x = element_text(angle = 90))
+
+e %>% 
+  filter(indicator == "Shape_Width") %>%
+  ggplot(aes(x = eros_feat_, y = value, fill = as.factor(year))) +
+  geom_boxplot() +
+  facet_zoom(ylim = c(0, 35)) +
+  labs(x = 'erosion feature', y = 'width (m)') +
+  scale_fill_discrete("Year") +
+  theme(legend.position = "top", axis.text.x = element_text(angle = 90))
+
+#' The map below shows the evolution of these features over time.
+#' 
+#' Highlights:
+#' 
+#' 1. co-registration seems to be good
+#' 2. 1988 shows a reduced extent of erosion features
+#' 3. It is likely that re-vegetation plays a big role
+#' 
+#+ Explore5, eval = F, echo = T
+tm = tm_shape(gully_merge) +
+  tm_polygons(
+    col = 'eros_feat_', 
+    border.alpha = 0, 
+    palette = "Dark2",
+    legend.hist = T,
+    title = "Erosion Feature",
+    legend.hist.title = "Feature Count"
+  ) +
+  tm_facets(along = 'year', free.coords = F) +
+  tm_layout(legend.outside = T, legend.hist.width = 0.8)
+tmap_animation(tm, width = 1200, height = 1000, 
+               filename = 'Data_overview/erosion_evolution.gif', 
+               loop = T, delay = 150, restart.delay = 250)
+#+ show
+knitr::include_graphics('../Data_overview/erosion_evolution.gif')
+
+#' ### Erosion Features 1988
+#' A quick overview of the erosion features mapped in 1988 overlayed to the 
+#' aerial imagery collected between 2012 and 2013 and LiDAR DEM from 2019.
+#' 
+#+ show2
+knitr::include_graphics('../Data_overview/LiDAR_Aerial_1988_erosion.png') 
+#' 
+#' When zooming in, we can see that re-vegetation has played a big role in 
+#' the erosion status of the Mangatu area. 
+#' 
+#' ## Next steps:
+#' 
+#' Some points to consider:
+#' 
+#' - Check the 1957 and 1997 data: It comes from a different source and the attributes are different
+#' - LiDAR DEM shows really nice the features: do a screening of what terrain variables can be useful.
+#' - Based on which imagery will we map? The mismatch between samples and optical data might be a problem, sicne re-vegetation has played a big role.
+#' 
+#' Thoughts:
+#' 
+#' - Try to map the gullies only based on aerial photographs and DSM derivatives:
+#'   - Candidate derivatives: slope, curvature (planar, profile), VDCN, *roughness*, hillshade, LS factor, *wetness index*
+#'   - For roughness and wetness index select one specific index from SAGA.
+#'   - Check Stream Power Index, seems meant to detect Gullies.
+#' - Use "active gully" polygons from 1988 as a reference to create chips for Deep Learning approach  
+#' 
+#+ render, eval = F, include = F
+o = knitr::spin('exploration/esda.R', knit = FALSE)
+rmarkdown::render(o)
