@@ -1,55 +1,66 @@
-#' ---
-#' title: "Terrain derivatives"
-#' subtitle: "STEC project"
-#' author: "Lorena Abad"
-#' date: "February 9, 2021"
-#' output: 
-#'   html_document: 
-#'     toc: true
-#'     toc_depth: 3
-#'     toc_float: true
-#'     code_folding: show
-#' ---
-#' 
-#' ## Setup
-#' Call libraries, data and initialize SAGA
+---
+title: "Terrain derivatives"
+subtitle: "STEC project"
+author: "Lorena Abad"
+date: "February 9, 2021"
+output: 
+  html_document: 
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: show
+---
 
-#+ setup, include = F
+## Setup
+Call libraries, data and initialize SAGA
+
+```{r setup, include = F}
 knitr::opts_chunk$set(echo = TRUE, warning = F, message = F, out.width = "100%")
 
-#+ Libraries
+```
+```{r Libraries}
 library(here)
 # remotes::install_github('loreabad6/terrain')
 library(terrain)
 library(terra)
 
-#+ Directories
+```
+```{r Directories}
 stec_dir = "R:/RESEARCH/02_PROJECTS/01_P_330001/119_STEC/04_Data/Gullies-Mangatu"
+```
 
-#' Set a prefix for file naming
-#+ prefix, eval = T
+Set a prefix for file naming
+
+```{r prefix, eval = T}
 prefix = "mangatu_"
 in_dem = here(stec_dir, 'Mangatu_feature_extraction', 'Mangatu_LiDAR_DEM_2019.tif')
 out = here('data_rs', 'terrain')
+```
 
-#' ### Convert to SAGA format
-#+ Load, eval = F
+### Convert to SAGA format
+
+```{r Load, eval = F}
 elev_to_sgrd(
   elev_filename = in_dem,
   out_filename = here(out, paste0(prefix, "dem.sgrd"))
 )
+```
 
-#' ### Initialize SAGA
-#' To create the terrain derivatives we need to have a SAGA local GUI
-#+ init, eval = F
+### Initialize SAGA
+To create the terrain derivatives we need to have a SAGA local GUI
+
+```{r init, eval = F}
 saga_path = here('..', 'Earthflows_R/software/saga-7.6.1_x64')
 saga_env = init_saga(saga_path)
+```
 
-#' ## Calculate derivatives
-#+ demset, eval = F
+## Calculate derivatives
+
+```{r demset, eval = F}
 dem = here(out, paste0(prefix, 'dem.sgrd'))
 
-#+ calc, eval = F
+```
+```{r calc, eval = F}
 elev_to_morphometry(
   elev_sgrd = dem,
   out_dir = out,
@@ -105,19 +116,23 @@ elev_to_channel(
   envir = saga_env,
   vdcnw = T
 )
+```
 
-#' ### Convert from SAGA to GeoTIFF
-#' The current version of GDAL (3.1.4) offered by OSGEO4W
-#' does not seem to support WKT crs inputs. Hence, we need
-#' to rely still on the ArcGIS toolbox to reproject the data. 
-#+ translate, eval = F
+### Convert from SAGA to GeoTIFF
+The current version of GDAL (3.1.4) offered by OSGEO4W
+does not seem to support WKT crs inputs. Hence, we need
+to rely still on the ArcGIS toolbox to reproject the data. 
+
+```{r translate, eval = F}
 c = rgdal::showWKT("init=epsg:2193")
 terrain_to_tif(
   out
   # out_crs = c
 )
 
-#+ render, eval = F, include = F
+```
+```{r render, eval = F, include = F}
 o = knitr::spin('pre-processing/terrain_derivatives.R', knit = FALSE)
 rmarkdown::render(o)
+```
 
