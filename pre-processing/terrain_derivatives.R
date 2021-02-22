@@ -106,7 +106,5 @@ elev_to_channel(
 )
 
 #' ### Convert from SAGA to GeoTIFF
-library(stars)
-r = read_stars(in_dem)
-c = st_crs(r)$wkt
+c = rgdal::showWKT("init=epsg:2193")
 terrain_to_tif(out, c)
