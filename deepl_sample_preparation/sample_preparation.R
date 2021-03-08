@@ -46,11 +46,11 @@ set.seed(837)
 control_samples = no_feature %>% 
   st_sample(150) %>% 
   st_sf() %>% 
-  transmute(class = "control")
+  transmute(class = "control", classvalue = 0)
 
 gully = gully_centroid %>% 
-  transmute(class = "gully")
+  transmute(class = "gully", classvalue = 1)
 
 
-samples = rbind(gully, control_samples)
+samples = rbind(gully, control_samples) 
 st_write(samples, "deepl_sample_preparation/sample_point_features.shp")
