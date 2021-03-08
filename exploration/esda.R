@@ -37,7 +37,7 @@ g60 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1960_ero_feat_n
 g70 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1970_ero_feat_nztm.shp'))
 g88 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'mangatu_1988_ero_feat_nztm.shp'))
 
-#' ## Explore
+#' ## Explore I
 #' First I will combine all the data into one single object to better explore 
 #' and summarize variables
 #' 
@@ -200,22 +200,68 @@ knitr::include_graphics('../Data_overview/LiDAR_Aerial_1988_erosion.png')
 #' When zooming in, we can see that re-vegetation has played a big role in 
 #' the erosion status of the Mangatu area. 
 #' 
-#' ## Next steps:
+#' ## Considerations so far:
 #' 
-#' Some points to consider:
-#' 
-#' - Check the 1957 and 1997 data: It comes from a different source and the attributes are different
-#' - LiDAR DEM shows really nice the features: do a screening of what terrain variables can be useful.
-#' - Based on which imagery will we map? The mismatch between samples and optical data might be a problem, sicne re-vegetation has played a big role.
+#' - Check the 1957 and 1997 data: It comes from a different source and 
+#'   the attributes are different
+#' - LiDAR DEM shows really nice the features: do a screening of what 
+#'   terrain variables can be useful.
+#' - Based on which imagery will we map? The mismatch between samples 
+#'   and optical data might be a problem, since re-vegetation has played
+#'   a big role.
 #' 
 #' Thoughts:
 #' 
-#' - Try to map the gullies only based on aerial photographs and DSM derivatives:
-#'   - Candidate derivatives: slope, curvature (planar, profile), VDCN, *roughness*, hillshade, LS factor, *wetness index*
+#' - Try to map the gullies only based on aerial photographs and DEM
+#'   derivatives:
+#'   - Candidate derivatives: slope, curvature (planar, profile), VDCN,
+#'     *roughness*, hillshade, LS factor, *wetness index*
 #'   - For roughness and wetness index select one specific index from SAGA.
 #'   - Check Stream Power Index, seems meant to detect Gullies.
-#' - Use "active gully" polygons from 1988 as a reference to create chips for Deep Learning approach  
+#' - Use "active gully" polygons from 1988 as a reference to create chips
+#'   for Deep Learning approach  
 #' 
+#' ## Explore II
+#' 
+#' There are several mismatches with the 1988 data, some errors either
+#' from coregistration errors or from original biases and errors from the 
+#' delineation. For example:
+#' 
+#' Missing gully (?) inside red circle, is this a new feature, part of the 
+#' neighbor basin or simply wrongly mapped?
+knitr::include_graphics('../data_overview/Unmapped_Gully.png') 
+#' 
+#' The feature in the black outline clearly does not correspond to the aerial
+#' photography, why? was there any change in the landscape (unlikely), or does
+#' this have to do with a wrong delineation.
+knitr::include_graphics('../data_overview/Unaligned_Feature.png')
+#' 
+#' The idea now would be to use bounding boxes of likely gully features as
+#' labeled boxes of training data. Likewise, we would need to create training
+#' data of areas not exposed by erosion. 
+#' 
+gully_active = gully_merge %>% 
+  filter(eros_feat_ == "Active gully")
+ggplot(gully_active) +
+  geom_point(aes(x = Shape_Leng, y = Shape_Width, color = year))
+
+gully_long = gully_active %>% 
+  filter(Shape_Width < 50)
+
+tmap_mode("view")
+tm_shape(gully_long) +
+  tm_polygons(
+    col = "black",
+    border.alpha = 0,
+    alpha = 0.5, 
+    )
+
+gully_int = st_intersection(gully_long)
+
+tmap_mode("plot")
+tm_shape(gully_int) +
+  tm_fill(col = "grey", border.alpha = 0)
+
 #+ render, eval = F, include = F
 o = knitr::spin('exploration/esda.R', knit = FALSE)
 rmarkdown::render(o)
