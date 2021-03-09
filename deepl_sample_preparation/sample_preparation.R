@@ -28,6 +28,14 @@ gully_centroid = g88 %>%
   filter(str_detect(eros_feat_, "gully")) %>% 
   mutate(geometry = st_centroid(geometry))
 
+gully_poly = g88 %>%
+  filter(str_detect(eros_feat_, "gully")) 
+
+set.seed(57)
+gully_point = gully_poly %>%
+  st_buffer(-5) %>% 
+  st_sample(size = 500, type = "random")
+
 sa = st_read(here(stec_dir, "Mangatu_feature_extraction", "mangatu_study_area.shp"))
 sa_proj = sa %>%
   st_transform(crs = st_crs(g88)) 
@@ -47,7 +55,7 @@ control_samples = no_feature %>%
   st_sf() %>% 
   transmute(class = "control", classvalue = 0)
 
-gully = gully_centroid %>% 
+gully = gully_point %>% 
   transmute(class = "gully", classvalue = 1)
 
 
