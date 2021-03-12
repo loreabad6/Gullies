@@ -103,7 +103,10 @@ elev_to_channel(
   out_dir = out,
   prefix = prefix,
   envir = saga_env,
-  vdcnw = T
+  chnet = TRUE,
+  vdcnw = TRUE,
+  init_value = 500,
+  chnet_shp = TRUE
 )
 
 #' ### Convert from SAGA to GeoTIFF
@@ -117,7 +120,9 @@ terrain_to_tif(
   # out_crs = c
 )
 
+#' ## Remarks:
+#' Some layers still need to be checked visually!
+
 #+ render, eval = F, include = F
 o = knitr::spin('pre-processing/terrain_derivatives.R', knit = FALSE)
 rmarkdown::render(o)
-

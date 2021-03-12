@@ -14,7 +14,8 @@ output:
 Call libraries and data
 
 ```{r setup, include = F}
-knitr::opts_chunk$set(echo = FALSE, warning = F, message = F, out.width = "100%")
+knitr::opts_chunk$set(echo = F, warning = F, cache = T,
+                      message = F, out.width = "100%")
 
 ```
 ```{r Libraries}
@@ -254,13 +255,90 @@ neighbor basin or simply wrongly mapped?
 knitr::include_graphics('../data_overview/Unmapped_Gully.png') 
 ```
 
+
 The feature in the black outline clearly does not correspond to the aerial
 photography, why? was there any change in the landscape (unlikely), or does
 this have to do with a wrong delineation.
 
 ```{r }
-knitr::include_graphics('../data_overview/Unaligned_Feature.png') 
+knitr::include_graphics('../data_overview/Unaligned_Feature.png')
 ```
+
+
+The idea now would be to use bounding boxes of likely gully features as
+labeled boxes of training data. Likewise, we could need to create training
+data of areas not exposed by erosion. 
+
+
+```{r }
+# gully_active = gully_merge %>% 
+#   filter(eros_feat_ == "Active gully")
+# ggplot(gully_active) +
+#   geom_point(aes(x = Shape_Leng, y = Shape_Width, color = year))
+# 
+# gully_long = gully_active %>% 
+#   filter(Shape_Width < 50)
+# 
+# tmap_mode("view")
+# tm_shape(gully_long) +
+#   tm_polygons(
+#     col = "black",
+#     border.alpha = 0,
+#     alpha = 0.5, 
+#     )
+# 
+# gully_int = st_intersection(gully_long)
+# 
+# tmap_mode("plot")
+# tm_shape(gully_int) +
+#   tm_fill(col = "grey", border.alpha = 0)
+```
+
+## DeepL tests
+With the gully features from 1988 I ran some tests to train a deep 
+learning model
+
+1. Export samples
+
+```{r out.width = "50%"}
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/export_samples.PNG")
+```
+
+Some samples of the resulting chips:
+
+```{r }
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips1.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips2.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips3.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips4.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips5.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips6.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips7.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips8.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips9.png")
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips10.png")
+```
+
+2. Train model
+
+```{r out.width = "50%"}
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/train_model.PNG")
+```
+
+3. Detect objects
+
+```{r out.width = "50%"}
+knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/detect_objects.PNG")
+```
+
+## Considerations at this point:
+Results have not been successful so far with the train models. 
+Further points to test:
+
+- Use DEM and derivatives as input data
+- Check how to use polygons as masks to generate labeled chips
+- Test different parameters on the literature to adjust the models
+
 ```{r render, eval = F, include = F}
 o = knitr::spin('exploration/esda.R', knit = FALSE)
 rmarkdown::render(o)

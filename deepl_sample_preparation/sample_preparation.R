@@ -29,7 +29,7 @@ gully_centroid = g88 %>%
   mutate(geometry = st_centroid(geometry))
 
 gully_poly = g88 %>%
-  filter(str_detect(eros_feat_, "gully")) 
+  filter(str_detect(eros_feat_, "gully"), Shape_Area < 1e5) 
 
 set.seed(57)
 gully_point = gully_poly %>%
@@ -51,14 +51,22 @@ no_feature = st_difference(sa_border, erosion_features_buf)
 
 set.seed(837)
 control_samples = no_feature %>% 
-  st_sample(150) %>% 
+  st_sample(500) %>% 
   st_sf() %>% 
   transmute(class = "control", classvalue = 0)
 
 gully = gully_point %>% 
+  st_sf() %>% 
   transmute(class = "gully", classvalue = 1)
 
 
 samples = rbind(gully, control_samples) 
-st_write(samples, "deepl_sample_preparation/sample_point_features.shp")
-st_write(gully, "deepl_sample_preparation/gully_point_features.shp")
+st_write(samples, "deepl_sample_preparation/sample_point_features.shp", delete_dsn = T)
+st_write(gully, "deepl_sample_preparation/gully_point_features.shp", delete_dsn = T)
+
+# library(tmap)
+# tmap_mode('view')
+# tm_shape(gully_poly) +
+#   tm_polygons(col = "red") +
+#   tm_shape(samples) +
+#   tm_dots(col = "class")

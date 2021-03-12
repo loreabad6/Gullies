@@ -114,7 +114,10 @@ elev_to_channel(
   out_dir = out,
   prefix = prefix,
   envir = saga_env,
-  vdcnw = T
+  chnet = TRUE,
+  vdcnw = TRUE,
+  init_value = 500,
+  chnet_shp = TRUE
 )
 ```
 
@@ -129,8 +132,11 @@ terrain_to_tif(
   out
   # out_crs = c
 )
-
 ```
+
+## Remarks:
+Some layers still need to be checked visually!
+
 ```{r render, eval = F, include = F}
 o = knitr::spin('pre-processing/terrain_derivatives.R', knit = FALSE)
 rmarkdown::render(o)
