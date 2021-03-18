@@ -1,30 +1,33 @@
-#' ---
-#' title: "Vector sample preparation for Deep Learning analysis"
-#' subtitle: "STEC project"
-#' author: "Lorena Abad"
-#' date: "March 8, 2021"
-#' output: 
-#'   html_document: 
-#'     toc: true
-#'     toc_depth: 3
-#'     toc_float: true
-#'     code_folding: hide
-#' ---
-#' ## Setup
-#' Call libraries and data
+---
+title: "Vector sample preparation for Deep Learning analysis"
+subtitle: "STEC project"
+author: "Lorena Abad"
+date: "March 8, 2021"
+output: 
+  html_document: 
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+---
+## Setup
+Call libraries and data
 
-#+ setup, include = F
+```{r setup, include = F}
 knitr::opts_chunk$set(echo = T, eval = F, warning = F, message = F, out.width = "100%")
 
-#+ Libraries
+```
+```{r Libraries}
 library(here)
 library(sf)
 library(tidyverse, quietly = T, warn.conflicts = F)
 
-#+ Directories
+```
+```{r Directories}
 stec_dir = "R:/RESEARCH/02_PROJECTS/01_P_330001/119_STEC/04_Data/Gullies-Mangatu"
 
-#+ Data
+```
+```{r Data}
 g39 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1939_ero_feat_nztm.shp'))
 g57 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_57_tm.shp'))
 g60 = st_read(here(stec_dir, 'mangatu_coregistered_LA', 'mangatu_1960_ero_feat_nztm.shp'))
@@ -33,7 +36,8 @@ g88 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'mangatu_1988_ero_fea
 g97_1 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_97_tm.shp'))
 g97_2 = st_read(here(stec_dir, 'Mangatu_feature_extraction', 'gullies_97_f_tm.shp'))
 
-#+ Combine, echo = T
+```
+```{r Combine, echo = T}
 # Establish some common variables
 eros_marden2014 = list(g39, g60, g70, g88)
 year_marden2014 = c(1939, 1960, 1970, 1988)
@@ -55,13 +59,16 @@ eros_ = purrr::map2(
 eros_merge = do.call(rbind, eros_) %>% 
   mutate_if(is.character, factor)
 
-#+ Filter
+```
+```{r Filter}
 gullies_marden2014 = eros_merge %>% 
   filter(str_detect(eros_feat_, "gully")) %>% 
   select(year) 
+```
 
-#' Apply same process for data from Marden et al. 2012
-#+ Combine2
+Apply same process for data from Marden et al. 2012
+
+```{r Combine2}
 eros_marden2012 = list(g57, g97_1, g97_2)
 year_marden2012 = c(1957, 1997, 1997)
 l_ = lapply(eros_marden2012, st_cast, "POLYGON")
@@ -75,15 +82,22 @@ l_1 = purrr::map2(
 gullies_marden2012 = do.call(rbind, l_1) %>% 
   mutate_if(is.character, factor) %>% 
   st_transform(crs = st_crs(gullies_marden2014))
+```
 
-#' Merge both sources
-#+ connect
+Merge both sources
+
+```{r connect}
 gullies = rbind(gullies_marden2012, gullies_marden2014)
+```
 
-#' Export data
-#+ export, eval = F
+Export data
+
+```{r export, eval = F}
 st_write(gullies, here("data_overview/gullies.shp"), delete_dsn = T)
 
-#+ render, eval = F, include = F
+```
+```{r render, eval = F, include = F}
 o = knitr::spin('deepl_sample_preparation/sample_preparation.R', knit = FALSE)
 rmarkdown::render(o)
+```
+
