@@ -4,4 +4,9 @@
 .Ruserdata
 data*
 ArcGIS*
+<<<<<<< HEAD
 chips*
+=======
+**/chips_*
+**/model_*
+>>>>>>> 59b0253... organize folders
