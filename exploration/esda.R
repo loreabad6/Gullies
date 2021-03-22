@@ -277,15 +277,6 @@ knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/export_sample
 #' Some samples of the resulting chips:
 #+ out.width = "70%"
 knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/sample_chips_rgb.gif")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips2.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips3.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips4.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips5.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips6.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips7.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips8.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips9.png")
-# knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/chips10.png")
 #' 2. Train model
 #+ out.width = "50%"
 knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/train_model.PNG")
@@ -311,8 +302,10 @@ knitr::include_graphics("../deepl_sample_preparation/ESRI_workflow/detect_object
 #' use a combination of distinct derivatives that allow the differentiation of the 
 #' gully features on LiDAR derived data. 
 #' 
-#' The training is now performed wiht a combination of all gully features for 
-#' 1939, 1957, 1960, 1970, 1988, 1997 from *Marden et al. 2012, 2014*:
+#' The training is now performed with a combination of all gully features for 
+#' 1939, 1957, 1960, 1970, 1988, 1997 from *Marden et al. 2012, 2014*. 
+#' The preparation of the samples is 
+#' [documented here](https://loreabad6.github.io/Gullies/deepl_sample_preparation/sample_preparation.html)
 #+ eval = F
 library(sf)
 library(tmap)

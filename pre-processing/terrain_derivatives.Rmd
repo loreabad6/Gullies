@@ -137,6 +137,22 @@ terrain_to_tif(
 ## Remarks:
 Some layers still need to be checked visually!
 
+## Overview:
+
+```{r eval = F}
+# files = list.files(path = "data_rs/terrain", pattern = "*tif$", full.names = T)
+# file_names = list.files(path = "data_rs/terrain", pattern = "*tif$")
+# library(stars)
+# library(purrr)
+# files_read = files[2:15] %>% map(function(x) read_stars(x, proxy = T))
+# par(mfrow = c(3,5))
+# invisible(lapply(files_read, function(x) {
+#   plot(x, key.pos = NULL, reset = F, main = NULL)
+# }))
+```
+```{r out.width = "90%"}
+knitr::include_graphics("../data_overview/terrain_derivatives.png")
+```
 ```{r render, eval = F, include = F}
 o = knitr::spin('pre-processing/terrain_derivatives.R', knit = FALSE)
 rmarkdown::render(o)

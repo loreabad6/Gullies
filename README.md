@@ -10,6 +10,8 @@ Summary of work so far:
 1.  Reference data needed some correction regarding co-registration, the
     approach followed is [documented
     here](https://loreabad6.github.io/Gullies/pre-processing/coregistration_approach.html).
+    The sample preparation for deep learning is [documented
+    here](https://loreabad6.github.io/Gullies/deepl_sample_preparation/sample_preparation.html)
 
 2.  A calculation of terrain derivatives was prepared based on the LiDAR
     DEM data provided. The approach is [documented

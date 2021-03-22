@@ -354,8 +354,10 @@ So far for one derivative at a time, eventually it would be useful to
 use a combination of distinct derivatives that allow the differentiation of the 
 gully features on LiDAR derived data. 
 
-The training is now performed wiht a combination of all gully features for 
-1939, 1957, 1960, 1970, 1988, 1997 from *Marden et al. 2012, 2014*:
+The training is now performed with a combination of all gully features for 
+1939, 1957, 1960, 1970, 1988, 1997 from *Marden et al. 2012, 2014*. 
+The preparation of the samples is 
+[documented here](https://loreabad6.github.io/Gullies/deepl_sample_preparation/sample_preparation.html)
 
 ```{r eval = F}
 library(sf)
