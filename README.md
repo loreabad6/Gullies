@@ -11,7 +11,7 @@ Summary of work so far:
     approach followed is [documented
     here](https://loreabad6.github.io/Gullies/pre-processing/coregistration_approach.html).
     The sample preparation for deep learning is [documented
-    here](https://loreabad6.github.io/Gullies/deepl_sample_preparation/sample_preparation.html)
+    here](https://loreabad6.github.io/Gullies/deep_learning/sample_preparation.html)
 
 2.  A calculation of terrain derivatives was prepared based on the LiDAR
     DEM data provided. The approach is [documented
@@ -20,7 +20,11 @@ Summary of work so far:
     `terrain`](https://github.com/loreabad6/terrain) was created to ease
     the workflow.
 
-3.  Finally, a summary of the exploration of the reference data and
-    initial tests with deep learning approaches in ArcGIS are
-    [documented
-    here](https://loreabad6.github.io/Gullies/exploration/esda.html).
+3.  A summary of the exploration of the reference data and initial tests
+    with deep learning approaches in ArcGIS are [documented
+    here](https://loreabad6.github.io/Gullies/exploration/esda.html) and
+    [here](https://loreabad6.github.io/Gullies/exploration/deepl1.html).
+
+4.  Further experimentation with ArcGIS Pro deep learning tools led to
+    the insights [documented
+    here](https://loreabad6.github.io/Gullies/exploration/deepl2.html).
