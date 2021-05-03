@@ -69,7 +69,7 @@ grViz(
 #' This tool creates labelled chips that will be subsequently used to train models.
 #'  
 #+ fig2, eval = F
-knitr::include_graphics("../deep_learning/ESRI_workflow/export_training_tool.png")
+knitr::include_graphics(here("deep_learning","ESRI_workflow","export_training_tool.png"))
 #' <details>
 #'  <summary>Tool screenshot</summary>
 #+  fig2, eval = T, out.width = "50%", fig.align='center', fig.cap = "Export Training Data for Deep Learning Tool"
@@ -94,7 +94,7 @@ knitr::include_graphics("../deep_learning/ESRI_workflow/export_training_tool.png
 #' The labels are "masks" that should ideally have a value of `1` when the pixel
 #' is overlayed by a training polygon or `0` when it is not. During my tests I realized that 
 #' using overlapping training polygons can result in strange labels, where there are values 
-#' outside of the `0-1` range generated. Users have [reported this issue on the ESRI forums without an answer so far](https://community.esri.com/t5/arcgis-pro-questions/quot-export-training-data-for-deep-learning-quot-creates/m-p/225513)
+#' outside of the `0-1` range generated. Users have [reported this issue on the ESRI forums without an answer so far](https://community.esri.com/t5/arcgis-pro-questions/quot-export-training-data-for-deep-learning-quot-creates/m-p/225513).
 #' However, after some further testing I realized this is not really 
 #' a problem when using a *three* band raster and hence did not look for a solution. 
 #' 
@@ -109,18 +109,31 @@ knitr::include_graphics("../deep_learning/ESRI_workflow/export_training_tool.png
 #' to be able to run the **Training** tool. This was done with the *Copy Raster* tool in ArcGIS.
 #' 
 #+ fig3, eval = F
-knitr::include_graphics("../deep_learning/ESRI_workflow/copy_raster_tool.png")
+knitr::include_graphics(here("deep_learning","ESRI_workflow","copy_raster_tool.png"))
 #' <details>
 #'  <summary>Tool screenshot</summary>
 #+  fig3, eval = T, out.width = "50%", fig.align='center', fig.cap = "Copy Raster Tool"
 #' </details> <br>
 #' 
 #' #### Train Model
-#' This tool is used to train the deep learning model.
+#' This tool is used to train the deep learning model (details of usage can be found
+#' [here](https://pro.arcgis.com/en/pro-app/latest/tool-reference/image-analyst/train-deep-learning-model.htm)).
+#' 
+#' Some parameters to consider, which will vary computation time and outputs:
+#' 
+#' | **Parameter** | **Description** |
+#' | ----| --------------- |
+#' | Input training data | The folder containing the image chips, labels, and statistics required to train the model.<br>This is the output from the **Export Training Data For Deep Learning** tool.<br>To train a model, the input images must be 8-bit rasters with three bands.|
+#' | Max Epochs | A maximum epoch of one means the dataset will be passed forward and backward through the neural network one time. The default value is 20.<br>The number of epochs is a hyperparameter that defines the number times that the learning algorithm will work through the entire training dataset.|
+#' | Model type | MASKRCNN —The MaskRCNN approach will be used to train the model. MaskRCNN is used for object detection. It is used for instance segmentation, which is precise delineation of objects in an image. This model type can be used to detect building footprints. It uses the MaskRCNN metadata format for training data as input. Class values for input training data must start at 1. This model type can only be trained using a CUDA-enabled GPU. |
+#' | Batch size | The number of training samples to be processed for training at one time. The default value is 2. If you have a powerful GPU, this number can be increased to 8, 16, 32, or 64. <br>The batch size is a hyperparameter that defines the number of samples to work through before updating the internal model parameters. |
+#' | Chip size | All model types support the chip_size argument, which is the chip size of the tiles in the training samples. The image chip size is extracted from the .emd file from the folder specified in the in_folder parameter. |
+#' | Learning rate | No value defined: The rate at which existing information will be overwritten with newly acquired information throughout the training process. If no value is specified, the optimal learning rate will be extracted from the learning curve during the training process. |
+#' | Backbone Model | Default used: RESNET50 —The preconfigured model will be a residual network trained on the ImageNET Dataset that contains more than 1 million images and is 50 layers deep. |
 #' 
 #+ fig4, eval = F
-knitr::include_graphics("../deep_learning/ESRI_workflow/train_dl_tool.png")
-knitr::include_graphics("../deep_learning/ESRI_workflow/train_dl_tool_env.png")
+knitr::include_graphics(here("deep_learning","ESRI_workflow","train_dl_tool.png"))
+knitr::include_graphics(here("deep_learning","ESRI_workflow","train_dl_tool_env.png"))
 #' <details>
 #'  <summary>Tool screenshot</summary>
 #+  fig4, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Train Deep Learning Model Tool"
@@ -136,12 +149,17 @@ knitr::include_graphics("../deep_learning/ESRI_workflow/train_dl_tool_env.png")
 #' previously trained.
 #' 
 #+ fig5, eval = F
-knitr::include_graphics("../deep_learning/ESRI_workflow/detect_objects_tool.png")
-knitr::include_graphics("../deep_learning/ESRI_workflow/detect_objects_tool_env.png")
+knitr::include_graphics(here("deep_learning","ESRI_workflow","detect_objects_tool.png"))
+knitr::include_graphics(here("deep_learning","ESRI_workflow","detect_objects_tool_env.png"))
 #' <details>
 #'  <summary>Tool screenshot</summary>
 #+  fig5, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Detect Objects using Deep Learning Tool"
 #' </details> <br>
+#' 
+#' 
+#' The padding size was the main parameter tested with this tool. 
+#' The resulting objects and the run time varied depending on which padding size was selected. 
+#' For an overview of the runtime see the figures below. 
 #' 
 #+  fig6, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Ellapsed times vs Padding size"
 library(ggplot2)
@@ -181,9 +199,72 @@ ggplot(filter(processing, zoom)) +
   ) +
   scale_y_time() 
 
-#' ## Methods
-#' ### Tested input data and parameters
+#' ## Application
+#' 
+#' The goal of these tests was to apply the Deep Learning Tools provided in ArcGIS Pro
+#' to detect gully features on terrain derivatives obtained from a LiDAR DEM. 
+#' 
+#' ### Input data
+#' Initially 15 derivatives (see figure \@ref(fig:fig7)) were computed from the DEM.
+#' 
+#' |  |  |  |  |  |
+#' | ---- | ---- | ---- | ---- | ---- |
+#' | channel network | planar curvature | profile curvature | downslope distance gradient | flow accumulation |
+#' | LS-factor | mass balance index | hillshade | slope | specific catchment area |
+#' | stream power index | texture | terrain ruggedness index | terrain wetness index | vertical distance to channel network |
+#' 
+#+ fig7, eval = T, fig.show="hold", out.width = "80%", fig.align='center', fig.cap = "Terrain derivatives computed"
+knitr::include_graphics(here("data_overview", "derivatives.png"))
+#' 
+#' The plan was to use all of them for gully detection. 
+#' Since, that was not possible, I did a selection of derivatives,
+#' see [here](pre-processing/terrain-selection.R).
+#' 
+#' The combinations tested were:
+#' 
+#' - Planar curvature + Slope + Terrain wetness index (cplan+slope+twidx)
+#' - LS-factor + Terrain ruggedness index + Terrain wetness index (lsfct+tridx+twidx)
+#' - LS-factor + Hillshade + Terrain ruggedness index (lsfct+shade+tridx)
+#' 
+#' ### Model characteristics
+#' The ArcGIS Pro workflow for Deep Learning was applied for each of these combinations, 
+#' preparing training data and running a model for each of them.
+#' 
+#' INCLUDE HERE THE PICTURES GENERETED FROM ARCGIS 
+#' 
+#' Each of the resulting models were then passed to the Detect Objects tool with 
+#' distinct padding sizes (250, 200, 128, 64, 32, 16, 4, 0). Every run of the tool
+#' resulted in slightly different results. 
+#' 
 #' ## Results
+#' The final detected objects obtained from each of the models varied depending on the
+#' derivatives selection but also on the padding size selected. 
+#+ cache = TRUE
+library(tmap)
+library(tidyverse)
+library(sf)
+files = list.files(here("deep_learning", "DetectedObjects"), "8bit.*.shp$", full.names = TRUE)
+names = list.files(here("deep_learning", "DetectedObjects"), "8bit.*.shp$", full.names = FALSE) 
+
+read_func = function(x, name) {
+  read_sf(x, quiet = TRUE) %>% 
+    mutate(filename = name)
+}
+
+detected_gullies_combine = do.call(rbind, purrr::map2(files, names, read_func)) 
+detected_gullies = detected_gullies_combine %>% 
+  mutate(
+    model = map_chr(str_split(filename, "_"), `[[`, 2),
+    padding = str_extract(
+      map_chr(str_split(filename, "_"), `[[`, 4),
+      "\\d+"
+    )
+  )
+
+detected_gullies
+#' 
+#' DO DATA WRANGLING AND VISUALIZATION (INTERACTIVE)
+#' 
 #' ## Limitations and outlook
 #' 
 #' 1. Number of bands 
@@ -203,6 +284,30 @@ ggplot(filter(processing, zoom)) +
 #' 
 #' 2. GPU constraints
 #' 
+#' The ability to run more powerful models that run for longer times and that require 
+#' larger batch sizes or higher number of epochs is restricted by the hardware in use. 
+#' This is well-known for the machine learning domain, and hence alternatives like 
+#' high-performance cloud computing could be considered (although they usually come
+#' at a cost).
+#' 
+#' 3. Not completely satisfactory results
+#' 
+#' The resulting gully objects detected with the three tested models were in general 
+#' matching spatially the gully features on the field, however the size of the objects
+#' was very small compared to the size of the actual gullies on the reference data.
+#' 
+#' The object sizes (mainly their length) do not seem to reach the shapes found on the
+#' field. I believe this could be related to the tile size selected (512 pixels), which 
+#' might have been insufficient to completely capture the majority of gullies per tile.
+#' However, working with larger tiles sizes was not possible due to GPU constraints. 
+#' 
+#' A possible solution is to work with the resulting features within an OBIA workflow
+#' that allows growing these objects in combination with the aerial imagery from the area.
+#' This is one possible idea that will be tested in a next step. 
+#' 
+#' ## References
+#' - Brownlee, J. (2018)
+#' [Difference Between a Batch and an Epoch in a Neural Network](https://machinelearningmastery.com/difference-between-a-batch-and-an-epoch/).
 #+ render, eval = F, include = F
 o = knitr::spin('exploration/deepl2.R', knit = FALSE)
 rmarkdown::render(o)

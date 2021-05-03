@@ -4,3 +4,15 @@ ggplot2
 ggforce
 lubridate
 dplyr
+abind
+sf
+stars
+here
+tmap
+tidyverse
+tibble
+tidyr
+readr
+purrr
+stringr
+forcats
