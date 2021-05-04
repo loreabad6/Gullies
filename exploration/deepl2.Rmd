@@ -14,6 +14,7 @@ output:
 ```{r setup, include = F}
 knitr::opts_chunk$set(echo = F, warning = F, cache = T,
                       message = F, out.width = "100%")
+library(here)
 ```
 
 ## Getting started with Deep Learning 
@@ -185,15 +186,14 @@ knitr::include_graphics(here("deep_learning","ESRI_workflow","detect_objects_too
 
 </details> <br>
 
-
+The threshold parameter refers to the minimum confidence value to keep for the detected objects.
 The padding size was the main parameter tested with this tool. 
 The resulting objects and the run time varied depending on which padding size was selected. 
 For an overview of the runtime see the figures below. 
 
 
 ```{r fig6, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Ellapsed times vs Padding size"}
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 processing = data.frame(
   padding = c(250, 200, 128, 64, 32, 16, 4, 0),
   elapsed_time = c(
@@ -264,7 +264,47 @@ The combinations tested were:
 The ArcGIS Pro workflow for Deep Learning was applied for each of these combinations, 
 preparing training data and running a model for each of them.
 
-INCLUDE HERE THE PICTURES GENERETED FROM ARCGIS 
+
+```{r fig8, eval = F}
+knitr::include_graphics(here("deep_learning","ESRI_workflow","cplanslopetwidx_loss_graph.png"))
+knitr::include_graphics(here("deep_learning","ESRI_workflow","cplanslopetwidx_show_results.png"))
+```
+
+<details>
+ <summary> 1. `cplan+slope+twidx` model characteristics </summary>
+
+```{r fig8, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Loss graph and Results subset for the first model"}
+```
+
+</details> <br>
+
+
+```{r fig9, eval = F}
+knitr::include_graphics(here("deep_learning","ESRI_workflow","lsfcttridxtwidx_loss_graph.png"))
+knitr::include_graphics(here("deep_learning","ESRI_workflow","lsfcttridxtwidx_show_results.png"))
+```
+
+<details>
+ <summary> 2. `lsfct+tridx+twidx` characteristics </summary>
+
+```{r fig9, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Loss graph and Results subset for the second model"}
+```
+
+</details> <br>
+
+
+```{r fig10, eval = F}
+knitr::include_graphics(here("deep_learning","ESRI_workflow","lsfctshadetridx_loss_graph.png"))
+knitr::include_graphics(here("deep_learning","ESRI_workflow","lsfctshadetridx_show_results.png"))
+```
+
+<details>
+ <summary> 3. `lsfct+shade+tridx` characteristics </summary>
+
+```{r fig10, eval = T, fig.show="hold", out.width = "50%", fig.align='center', fig.cap = "Loss graph and Results subset for the third model"}
+```
+
+</details> <br>
 
 Each of the resulting models were then passed to the Detect Objects tool with 
 distinct padding sizes (250, 200, 128, 64, 32, 16, 4, 0). Every run of the tool
@@ -274,10 +314,10 @@ resulted in slightly different results.
 The final detected objects obtained from each of the models varied depending on the
 derivatives selection but also on the padding size selected. 
 
-```{r cache = TRUE}
+```{r }
 library(tmap)
-library(tidyverse)
 library(sf)
+library(patchwork)
 files = list.files(here("deep_learning", "DetectedObjects"), "8bit.*.shp$", full.names = TRUE)
 names = list.files(here("deep_learning", "DetectedObjects"), "8bit.*.shp$", full.names = FALSE) 
 
@@ -294,13 +334,83 @@ detected_gullies = detected_gullies_combine %>%
       map_chr(str_split(filename, "_"), `[[`, 4),
       "\\d+"
     )
-  )
+  ) %>% 
+  mutate(model = case_when(
+    model == "curvslopetwidx" ~ "cplanslopetwidx",
+    model == "merge3" ~ "lsfctshadetridx",
+    TRUE ~ model
+  )) %>% 
+  select(-c(Class, filename)) %>% 
+  relocate(geometry, .after = padding) %>% 
+  arrange(Confidence) %>% 
+  mutate(padding = as.numeric(padding))
+```
 
-detected_gullies
+In general, a higher amount of objects were detected for the `lsfct+shade+tridx` model.
+
+```{r fig11, eval = T, fig.show="hold", out.width = "100%", fig.align='center', fig.cap = "Distribution of Confidence values for the detected objects according to the padding size and model"}
+ggplot(detected_gullies) +
+  geom_histogram(aes(Confidence)) +
+  scale_x_continuous(breaks = c(50, 75, 100)) +
+  facet_grid(model ~ padding)
+```
+
+The spatial distribution of the objects detected with the `lsfct+shade+tridx` model
+seemed also to offer a better overview of the gully location throughout the study area.
+This model seemed to be the most promising combination of terrain derivatives. 
+
+```{r fig12, eval = T, fig.height = 2, fig.show="hold", out.width = "90%", fig.align='center', fig.cap = "Spatial distribution of detected objects by model"}
+tmap_mode("plot")
+tm_shape(detected_gullies) +
+  tm_polygons(col = "Confidence", palette = "-magma", legend.hist = T) +
+  tm_layout(legend.width = 0.3, legend.hist.width = 1) +
+  tm_facets(by = "model", ncol = 3) 
 ```
 
 
-DO DATA WRANGLING AND VISUALIZATION (INTERACTIVE)
+To simplify the exploration, I will only look into the results of this model.
+All the other results are in the [deep_learning/DetectedObjects](deep_learning/DetectedObjects)
+directory as shapefiles. 
+
+Below is an overview of the detected objects according to the padding size used.
+In the background in light grey, the reference gully data is mapped.
+
+```{r fig13, eval = T, fig.height = 3, fig.show="hold", out.width = "100%", fig.align='center', fig.cap = "Spatial distribution of detected objects by padding size"}
+detected_gullies_bestmodel = detected_gullies %>% 
+  filter(model == "lsfctshadetridx") %>% 
+  mutate(area = st_area(geometry))
+gullies = st_read(here("data_overview", "gullies.shp"), quiet = TRUE) %>% 
+  mutate(area = st_area(geometry))
+tm_shape(gullies) +
+  tm_fill(col = "grey70") +
+  tm_shape(detected_gullies_bestmodel) +
+  tm_polygons(
+    col = "Confidence", palette = "-magma",
+    legend.hist = T
+  ) +
+  tm_facets(by = "padding", ncol = 4) 
+
+```
+```{r fig14, eval = T, fig.show="hold", out.width = "80%", fig.align='center', fig.cap = "Number of detected objects by padding size"}
+ggplot(detected_gullies_bestmodel) +
+  geom_bar(aes(as.factor(padding))) +
+  labs(y = "No. of detected objects", x = "Padding size")
+
+```
+```{r fig15, eval = T, fig.show="hold", out.width = "80%", fig.align='center', fig.cap = "Area of detected objects"}
+g1 = ggplot((detected_gullies_bestmodel)) +
+  geom_violin(aes(y = as.numeric(area)*0.0001, x = as.factor(padding))) +
+  labs(y = "Area (ha)", x = "Padding size", title = "Area of detected objects by padding size")
+
+g2 = ggplot(gullies) +
+  geom_violin(aes(x = "Reference", y = as.numeric(area)*0.0001)) +
+  labs(y = "Area (ha)", x = NULL, title = "Area of reference gully features (for comparison)")
+
+g1 / g2
+```
+
+In general, the main limitation is the size of the objects, which are simply not on 
+the same range as for the actual gully features.
 
 ## Limitations and outlook
 
