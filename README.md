@@ -1,4 +1,5 @@
-Gully detection with Deep Learning
+Gully detection based on LiDAR and terrain derivatives with Deep
+Learning
 ================
 
 Exploring existing gully inventories in the Gisborne area in New Zealand
@@ -11,7 +12,7 @@ Summary of work so far:
     approach followed is [documented
     here](https://loreabad6.github.io/Gullies/pre-processing/coregistration_approach.html).
     The sample preparation for deep learning is [documented
-    here](https://loreabad6.github.io/Gullies/deep_learning/sample_preparation.html)
+    here](https://loreabad6.github.io/Gullies/deep_learning/sample_preparation.html).
 
 2.  A calculation of terrain derivatives was prepared based on the LiDAR
     DEM data provided. The approach is [documented
@@ -28,3 +29,9 @@ Summary of work so far:
 4.  Further experimentation with ArcGIS Pro deep learning tools led to
     the insights [documented
     here](https://loreabad6.github.io/Gullies/exploration/deepl2.html).
+
+## Acknowledgements
+
+This research work is supported by the New Zealand Ministry of Business,
+Innovation and Employment research program “Smarter Targeting of Erosion
+Control (STEC)” (Contract C09X1804).
