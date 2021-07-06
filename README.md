@@ -1,5 +1,4 @@
-Gully detection based on LiDAR and terrain derivatives with Deep
-Learning
+Gully detection based on LiDAR and terrain derivatives with Deep Learning
 ================
 
 Exploring existing gully inventories in the Gisborne area in New Zealand
