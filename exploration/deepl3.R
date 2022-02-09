@@ -2,6 +2,7 @@ library(sf)
 library(stars)
 library(here)
 library(tidyverse)
+library(patchwork)
 
 ref_dir = here("from262/gullies/dump_15082021/reference/")
 output_dir = here("from262/gullies/dump_15082021/output/")
@@ -52,16 +53,33 @@ ggplot(detectedObjectsFiltered) +
   scale_y_continuous(trans = "log10") +
   facet_wrap(~pad) 
 
+dist = ggplot(detectedObjectsFiltered) +
+  geom_sf(aes(fill = Confidence), col = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
+  theme(panel.background = element_rect(fill = "black")) 
+
+ref = ggplot() +
+  geom_sf(data = train, col = 'red', fill = NA) +
+  geom_sf(data = test, col = 'orange', fill = NA) +
+  theme_void() 
+dims = get_dim(dist)
+ref_aligned = set_dim(ref, dims)
+
+ggsave(dist, filename = 'exploration/distribution.png',
+       width = 20, height = 18, units = 'cm', dpi = 300)
+ggsave(ref_aligned, filename = 'exploration/reference.png',
+       width = 20, height = 18, units = 'cm', dpi = 300)
+
+# ggplot(filter(detectedObjects, area < 2500)) +
+#   geom_sf(aes(fill = Confidence), col = NA) +
+#   scale_fill_viridis_c() +
+#   theme_void() +
+#   theme(panel.background = element_rect(fill = "black")) 
+
 ggplot(detectedObjectsFiltered) +
-  geom_sf(aes(fill = Confidence), col = NA) +
-  scale_fill_viridis_c() +
-  theme_void() +
-  theme(panel.background = element_rect(fill = "black")) 
-ggplot(filter(detectedObjects, area < 2500)) +
-  geom_sf(aes(fill = Confidence), col = NA) +
-  scale_fill_viridis_c() +
-  theme_void() +
-  theme(panel.background = element_rect(fill = "black")) 
+  geom_violin(aes(y = as.numeric(area)*0.0001, x = as.factor(pad))) +
+  labs(y = "Area (ha)", x = "Padding size", title = "Area of detected objects by padding size")
 
 library(mapview)
 
@@ -72,20 +90,24 @@ mapview(detectedObjectsFiltered, zcol = "Confidence") +
 test %>% 
   st_filter(detectedObjectsFiltered, .predicate = st_intersects)
 
-detectedObjectsFilteredInt = detectedObjectsFiltered %>% 
-  rowwise() %>% 
-  mutate(
-    areaInt = st_intersection(geometry, test$geometry) %>%
-      st_area() %>% sum()
-  )
+# detectedObjectsFilteredInt = detectedObjectsFiltered %>% 
+#   rowwise() %>% 
+#   mutate(
+#     areaInt = st_intersection(geometry, test$geometry) %>%
+#       st_area() %>% sum()
+#   )
+# 
+# save(detectedObjectsFilteredInt, file = "backup_validation_gullies.RData")
+load(file = "backup_validation_gullies.RData")
+detectedObjectsFilteredInt
 
-save(detectedObjectsFilteredInt, file = "backup_validation_gullies.RData")
 
-
+detectedObjectsFiltered %>% 
+  st_intersects(test)
 t = detectedObjectsFilteredInt %>% 
-  mutate(intPerc = as.numeric(areaInt)/area)
+  mutate(intPerc = as.numeric(areaInt)/area*100)
 
 t %>% 
-  filter(intPerc > 0, intPerc <= 1) %>% 
+  filter(intPerc > 0, intPerc <= 100) %>% 
   ggplot() +
   geom_point(aes(intPerc, Confidence))
