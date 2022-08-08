@@ -174,6 +174,8 @@ These steps can be applied using the GUI or with the ArcPy Python modules for Ar
 
 See [documentation of the Python API here](https://developers.arcgis.com/python/api-reference/arcgis.learn.toc).
 
+See the whole [Jupyter notebook here](https://loreabad6.github.io/Gullies/documentation/stec_deepl.html).
+
 0. Pre-process data:
 
 ```{python, eval = F, echo = T}
@@ -210,19 +212,41 @@ terrain_raster.renameBand(12, 'vdcnw')
 terrain_raster.getRasterBands()
 ```
 
-
-1. Export training data:
+1. Band selection
 
 ```{python, eval = F, echo = T}
 # Define variables
 terrain = r'data\terrain.tif'
 terrain_raster = Raster(terrain, True)
-gullies = r'data\gullies_train.shp'
-out_chips = r'work\terrain_3lay'
+gullies = r'data\gullies_train_union.shp'
 
 # Select bands
-terrain_sel = ExtractBand(terrain_raster, band_names=['lsfct','shade','tridx'])
+bands_sel = ['cplan','lsfct','slope','tridx','twidx']
+terrain_sel = ExtractBand(terrain_raster, band_names=bands_sel)
+terrain_sel.save('data/temp/terrain_'+''.join(bands_sel)+'.tif')
 
+# Convert data to 8BIT
+nd_val = -99999
+terrain_8bit = "temp/terrain_" + ''.join(bands_sel) + "_8bit.tif"
+arcpy.CopyRaster_management(
+    in_raster=terrain_sel,
+    out_rasterdataset=terrain_8bit,
+    nodata_value=nd_val,
+    pixel_type="8_BIT_UNSIGNED",
+    # For some reason, actually activating this option DOES NOT scale the pixels
+    scale_pixel_value="NONE", 
+    format= "TIFF")
+
+## Set dir for chip generation named after band selection
+out_chips = 'work/terrain_'+ ''.join(bands_sel)
+# Create output_dir if not existing
+if not os.path.exists(out_chips):
+    os.mkdir(out_chips)
+```
+
+2. Export training data:
+
+```{python, eval = F, echo = T}
 # Execute ArcPy tool for data export
 ExportTrainingDataForDeepLearning(
     terrain_sel, out_chips, gullies, 
@@ -236,13 +260,16 @@ ExportTrainingDataForDeepLearning(
 from arcgis.learn import prepare_data
 data = prepare_data(
     out_chips, 
+    dataset_type='RCNN_Masks',
     batch_size=4, chip_size=512,
-    imagery_type='ms' #multispectral
+    imagery_type='ms',
+    norm_pct=1
 )
+print(data)
 data.show_batch(rgb_bands=[0,1,2])
 ```
 
-2. Model training:
+3. Model training:
 
 ```{python, eval = F, echo = T}
 # Define model architecture
@@ -252,10 +279,10 @@ maskrcnn = MaskRCNN(
 )
 
 # Find efficient learning rate
-maskrcnn.lr_find() # result goes into next command
+maskrcnn.lr_find() # copy into next command
 
 # Fit the model
-maskrcnn.fit(epochs=20, lr=maskrcnn.lr_find())
+maskrcnn.fit(epochs=20, ,early_stopping=True, lr=maskrcnn.lr_find())
 
 # Unfreeze the model 
 maskrcnn.unfreeze()
@@ -267,10 +294,13 @@ maskrcnn.plot_losses()
 maskrcnn.show_results(rows=3)
 
 # Save model
-maskrcnn.save('gully_model_lsfctshadetridx_20ep')
+model_name = '20ep'
+maskrcnn.save(model_name)
 ```
 
-3. Detect objects:
+4. Detect objects:
+
+Sadly, this section here does not work with code, so for now, please go to the Geoprocessing tool :)
 
 ```{python, eval = F, echo = T}
 arcpy.env.processorType = "GPU"
