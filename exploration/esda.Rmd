@@ -416,6 +416,7 @@ until results area shown.
 - Work-flows are run now with CPU instead of GPU since there is a configuration error
 - Testing different compositions of layers is limiting
 - Doing a sensitivity analysis of the best parameters for model training needs larger computational power
+
 ## References:
 Marden, M., Arnold, G., Seymour, A., & Hambling, R. (2012). History and distribution of steepland gullies in response to land use change, East Coast Region, North Island, New Zealand. Geomorphology, 153–154, 81–90. https://doi.org/10.1016/j.geomorph.2012.02.011
 Marden, M., Herzig, A., & Basher, L. (2014). Erosion process contribution to sediment yield before and after the establishment of exotic forest: Waipaoa catchment, New Zealand. Geomorphology, 226, 162–174. https://doi.org/10.1016/j.geomorph.2014.08.007

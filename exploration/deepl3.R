@@ -4,8 +4,8 @@ library(here)
 library(tidyverse)
 library(patchwork)
 
-ref_dir = here("from262/gullies/dump_15082021/reference/")
-output_dir = here("from262/gullies/dump_15082021/output/")
+ref_dir = here("deep_learning/DetectedObjects_update/reference/")
+output_dir = here("deep_learning/DetectedObjects_update/output/")
 output_fs = list.files(
   output_dir,
   pattern = "^lsfctshadetridx_train.*shp$", 
