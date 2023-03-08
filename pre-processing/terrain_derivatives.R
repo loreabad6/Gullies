@@ -30,7 +30,7 @@ stec_dir = "R:/RESEARCH/02_PROJECTS/01_P_330001/119_STEC/04_Data/Gullies-Mangatu
 #+ prefix, eval = T
 prefix = "mangatu_"
 in_dem = here(stec_dir, 'Mangatu_feature_extraction', 'Mangatu_LiDAR_DEM_2019.tif')
-out = here('data_rs', 'terrain')
+out = here('data', 'terrain')
 
 #' ### Convert to SAGA format
 #+ Load, eval = F
@@ -125,8 +125,8 @@ terrain_to_tif(
 #' 
 #' ## Overview:
 #+ eval = F
-# files = list.files(path = "data_rs/terrain", pattern = "*tif$", full.names = T)
-# file_names = list.files(path = "data_rs/terrain", pattern = "*tif$")
+# files = list.files(path = "data/terrain", pattern = "*tif$", full.names = T)
+# file_names = list.files(path = "data/terrain", pattern = "*tif$")
 # library(stars)
 # library(purrr)
 # files_read = files[2:15] %>% map(function(x) read_stars(x, proxy = T))
