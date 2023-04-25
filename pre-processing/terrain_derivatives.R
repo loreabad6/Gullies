@@ -125,17 +125,20 @@ terrain_to_tif(
 #' 
 #' ## Overview:
 #+ eval = F
-# files = list.files(path = "data/terrain", pattern = "*tif$", full.names = T)
-# file_names = list.files(path = "data/terrain", pattern = "*tif$")
-# library(stars)
-# library(purrr)
-# files_read = files[2:15] %>% map(function(x) read_stars(x, proxy = T))
-# par(mfrow = c(3,5))
-# invisible(lapply(files_read, function(x) {
-#   plot(x, key.pos = NULL, reset = F, main = NULL)
-# }))
+files = list.files(path = "data/terrain", pattern = "*tif$", full.names = T)
+file_names = list.files(path = "data/terrain", pattern = "*tif$")
+library(stars)
+library(purrr)
+files_read = files[c(2:4,6:9,11:15)] %>% map(function(x) read_stars(x, proxy = T))
+png(filename = "exploration/terrain_derivatives.png",
+    res = 300, units = "cm", width = 18, height = 6)
+par(mfrow = c(2,6))
+invisible(lapply(files_read, function(x) {
+  plot(x, key.pos = NULL, reset = F, main = NULL)
+}))
+dev.off()
 #+ out.width = "90%"
-knitr::include_graphics("../data_overview/terrain_derivatives.png")
+knitr::include_graphics("../exploration/terrain_derivatives.png")
 #+ render, eval = F, include = F
 o = knitr::spin('pre-processing/terrain_derivatives.R', knit = FALSE)
 rmarkdown::render(o)

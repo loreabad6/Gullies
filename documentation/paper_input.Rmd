@@ -61,6 +61,15 @@ t = tm_shape(bg) +
   tm_facets("year", free.coords = FALSE)
 tmap_save(t, filename = "gully_reference_data.png",
           dpi = 300, width = 15, height = 10, units = "cm")
+tl = tm_shape(bg) +
+  tm_rgb(alpha = 0.85) +
+  tm_shape(gullies) +
+  tm_polygons(border.col = "red", alpha = 0, width = 2) +
+  tm_facets("year", nrow = 1, free.coords = FALSE) +
+  tm_layout(bg="transparent")
+tmap_save(tl, filename = "gully_reference_data_long.png",
+          bg = "transparent", 
+          dpi = 300, width = 25, height = 5, units = "cm")
 ```
 
 ```{r gullyref, out.width = "80%", fig.cap = "Gully reference data for the Mangatu catchment. From @Marden2012 and @Marden2014. Background: Aerial imagery collected between 2012 and 2013.", fig.align="center"}
